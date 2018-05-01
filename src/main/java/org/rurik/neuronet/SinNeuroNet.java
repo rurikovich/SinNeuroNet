@@ -12,6 +12,12 @@ import org.deeplearning4j.nn.conf.layers.OutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
@@ -19,6 +25,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -29,7 +36,7 @@ public class SinNeuroNet {
         int seed = 13;
         double learningRate = 0.01;
         int batchSize = 1000;
-        int nEpochs = 20000;
+        int nEpochs = 600000;
 
         int numInputs = 1;
         int numOutputs = 1;
@@ -72,13 +79,65 @@ public class SinNeuroNet {
         }
 
 
+        double[] x = new double[2001];
+        double[] yExpected = new double[2001];
+        double[] yNeuroNet = new double[2001];
+
+
+        int i = 0;
+
         for (double v = -10; v < 10; v += 0.01) {
+
             final INDArray input = Nd4j.create(new double[]{v}, new int[]{1, 1});
             INDArray out = network.output(input, false);
-            System.out.println("v=" + String.format("%.3f",v) + " net out=" + out + "sin=" + String.format("%.3f", Math.sin(v)));
+            double realSin = Math.sin(v);
+            System.out.println("v=" + String.format("%.3f", v) + " net out=" + out + "sin=" + String.format("%.3f", realSin));
+
+
+            x[i] = v;
+            yExpected[i] = realSin;
+            yNeuroNet[i] = out.getDouble(1, 1);
+            i++;
         }
 
 
+        plot(x, yExpected, yNeuroNet);
+
+    }
+
+
+    //Plot the data
+    private static void plot(final double[] x, final double[] yExpected, final double[] yNeuroNet) {
+        final XYSeriesCollection dataSet = new XYSeriesCollection();
+        addSeries(dataSet, x, yExpected, "Sin");
+        addSeries(dataSet, x, yNeuroNet, "NeuroNet Sin");
+
+
+        final JFreeChart chart = ChartFactory.createXYLineChart(
+                "NeuroNet Sin",      // chart title
+                "X",                        // x axis label
+                "sin(X)", // y axis label
+                dataSet,                    // data
+                PlotOrientation.VERTICAL,
+                true,                       // include legend
+                true,                       // tooltips
+                false                       // urls
+        );
+
+        final ChartPanel panel = new ChartPanel(chart);
+
+        final JFrame f = new JFrame();
+        f.add(panel);
+        f.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        f.pack();
+
+        f.setVisible(true);
+    }
+
+    private static void addSeries(final XYSeriesCollection dataSet, final double[] x, final double[] y, final String label) {
+        final XYSeries s = new XYSeries(label);
+        for (int j = 0; j < x.length; j++) s.add(x[j], y[j]);
+        dataSet.addSeries(s);
     }
 
 
