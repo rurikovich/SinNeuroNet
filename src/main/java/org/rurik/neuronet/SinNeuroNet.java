@@ -26,10 +26,10 @@ public class SinNeuroNet {
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        int seed = 12;
+        int seed = 13;
         double learningRate = 0.01;
         int batchSize = 1000;
-        int nEpochs = 2000;
+        int nEpochs = 20000;
 
         int numInputs = 1;
         int numOutputs = 1;
@@ -75,7 +75,7 @@ public class SinNeuroNet {
         for (double v = -10; v < 10; v += 0.01) {
             final INDArray input = Nd4j.create(new double[]{v}, new int[]{1, 1});
             INDArray out = network.output(input, false);
-            System.out.println("v=" + v + " net out=" + out + "sin=" + Math.sin(v));
+            System.out.println("v=" + String.format("%.3f",v) + " net out=" + out + "sin=" + String.format("%.3f", Math.sin(v)));
         }
 
 
